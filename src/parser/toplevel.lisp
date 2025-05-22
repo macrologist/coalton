@@ -2061,7 +2061,7 @@ consume all attributes")))
 
 (defun parse-exception (form source)
   (declare (type cst:cst form)
-           (values toplevel-exception))
+    (values toplevel-exception))
   (assert (cst:consp form))
 
   (let (docstring
@@ -2074,11 +2074,12 @@ consume all attributes")))
                    (note source form "expected constructor")))
 
     ;; (define-exception (...))
-    (when (cst:third form)
+    (when (and (cst:consp (cst:rest (cst:rest form)))
+               (cst:third form))
       (unless (stringp (cst:raw (cst:third form)))
         (parse-error "Malformed expected definition"
-                     (note-end source (cst:second form)
-                               "bad thing to be a docstring.")))
+                     (note source (cst:third form)
+                           "bad thing to be a docstring.")))
       (setf docstring (cst:raw (cst:third form))))
 
     ;; (define-exception (<constructor-name> ...) <docstring-or-nil>)
@@ -2092,7 +2093,7 @@ consume all attributes")))
 
 (defun parse-resumption (form source)
   (declare (type cst:cst form)
-           (values toplevel-resumption))
+    (values toplevel-resumption))
   (assert (cst:consp form))
 
   (let (docstring
@@ -2105,11 +2106,12 @@ consume all attributes")))
                    (note source form "expected constructor")))
 
     ;; (define-exception (...))
-    (when (cst:third form)
+    (when (and (cst:consp (cst:rest (cst:rest form)))
+               (cst:third form))
       (unless (stringp (cst:raw (cst:third form)))
         (parse-error "Malformed resumption definition"
-                     (note-end source (cst:second form)
-                               "bad thing to be a docstring.")))
+                     (note source (cst:third form)
+                           "bad thing to be a docstring.")))
       (setf docstring (cst:raw (cst:third form))))
 
     ;; (define-exception (<constructor-name> ...) <docstring-or-nil>)
