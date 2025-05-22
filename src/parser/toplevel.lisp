@@ -286,6 +286,34 @@
 (deftype toplevel-define-type-list ()
   '(satisfies toplevel-define-type-list-p))
 
+(defstruct (toplevel-exception
+            (:include toplevel-definition)
+            (:copier nil))
+  (ctor (util:required 'ctor)  :type constructor              :read-only t)
+  (repr (util:required 'repr)  :type (or null attribute-repr)))
+
+(eval-when (:load-toplevel :compile-toplevel :execute)
+  (defun toplevel-exception-list-p (xs)
+    (and (alexandria:proper-list-p xs)
+         (every #'toplevel-exception-p xs))))
+
+(deftype toplevel-exception-list ()
+  '(satisfies toplevel-exception-list-p))
+
+(defstruct (toplevel-resumption
+            (:include toplevel-definition)
+            (:copier nil))
+  (ctor (util:required 'ctor) :type constructor              :read-only t))
+
+(eval-when (:load-toplevel :compile-toplevel :execute)
+  (defun toplevel-resumption-list-p (xs)
+    (and (alexandria:proper-list-p xs)
+         (every #'toplevel-resumption-p xs))))
+
+(deftype toplevel-resumption-list ()
+  '(satisfies toplevel-resumption-list-p))
+
+
 (defstruct (toplevel-define-type-alias
             (:include toplevel-definition)
             (:copier nil))
@@ -505,6 +533,8 @@
 
 (defstruct program
   (package         nil :type (or null toplevel-package)      :read-only t)
+  (exceptions      nil :type toplevel-exception-list         :read-only nil)
+  (resumptions     nil :type toplevel-resumption-list        :read-only nil)
   (types           nil :type toplevel-define-type-list       :read-only nil)
   (type-aliases    nil :type toplevel-define-type-alias-list :read-only nil)
   (structs         nil :type toplevel-define-struct-list     :read-only nil)
@@ -944,6 +974,18 @@ If the parsed form is an attribute (e.g., repr or monomorphize), add it to to AT
        (setf (fill-pointer attributes) 0)
        (push declare (program-declares program))
        t))
+
+    ((coalton:exception)
+     (let* ((exception (parse-exception form source))
+            (repr (consume-repr attributes exception "when parsing define-exception")))
+       (setf (toplevel-exception-repr exception) repr)
+       (push exception (program-exceptions program))
+       t))
+
+    ((coalton:resumption)
+     (let ((resumption (parse-resumption form source)))
+       (push resumption (program-resumptions program))
+       t))    
 
     ((coalton:define-type)
      (let* ((type (parse-define-type form source))
@@ -2016,3 +2058,67 @@ consume all attributes")))
                            :type (parse-type type source)
                            :docstring docstring
                            :location (form-location source form))))))
+
+(defun parse-exception (form source)
+  (declare (type cst:cst form)
+           (values toplevel-exception))
+  (assert (cst:consp form))
+
+  (let (docstring
+        ctor)
+
+    ;; (define-exception)
+    (unless (and (cst:consp (cst:rest form))
+                 (cst:consp (cst:second form)))
+      (parse-error "Malformed exception definition"
+                   (note source form "expected constructor")))
+
+    ;; (define-exception (...))
+    (when (cst:third form)
+      (unless (stringp (cst:raw (cst:third form)))
+        (parse-error "Malformed expected definition"
+                     (note-end source (cst:second form)
+                               "bad thing to be a docstring.")))
+      (setf docstring (cst:raw (cst:third form))))
+
+    ;; (define-exception (<constructor-name> ...) <docstring-or-nil>)
+    (setf ctor (parse-constructor (cst:second form) form docstring source))
+
+    (make-toplevel-exception
+     :location (form-location source form)
+     :docstring docstring
+     :ctor ctor
+     :repr nil)))
+
+(defun parse-resumption (form source)
+  (declare (type cst:cst form)
+           (values toplevel-resumption))
+  (assert (cst:consp form))
+
+  (let (docstring
+        ctor)
+
+    ;; (define-resumption)
+    (unless (and (cst:consp (cst:rest form))
+                 (cst:consp (cst:second form)))
+      (parse-error "Malformed resumption definition"
+                   (note source form "expected constructor")))
+
+    ;; (define-exception (...))
+    (when (cst:third form)
+      (unless (stringp (cst:raw (cst:third form)))
+        (parse-error "Malformed resumption definition"
+                     (note-end source (cst:second form)
+                               "bad thing to be a docstring.")))
+      (setf docstring (cst:raw (cst:third form))))
+
+    ;; (define-exception (<constructor-name> ...) <docstring-or-nil>)
+    (setf ctor (parse-constructor (cst:second form) form docstring source))
+
+    (make-toplevel-resumption
+     :location (form-location source form)
+     :docstring docstring
+     :ctor ctor)))
+
+
+

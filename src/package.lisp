@@ -25,6 +25,8 @@
    #:coalton
    #:declare
    #:define
+   #:exception
+   #:resumption
    #:define-type
    #:define-type-alias
    #:define-struct
@@ -131,3 +133,4 @@
    #:Boolean/True
    #:Boolean/False
    #:Unit/Unit))
+
