@@ -556,10 +556,56 @@ Rebound to NIL parsing an anonymous FN.")
   (expr    (util:required 'expr)    :type node      :read-only t)
   (body    (util:required 'body)    :type node-body :read-only t))
 
+(defstruct (node-throw
+            (:include node)
+            (:copier nil))
+  (condition (util:required 'condition) :type node :read-only t))
+
+
+(defstruct (node-catch-branch (:copier nil))
+  (pattern  (util:required 'pattern)  :type pattern         :read-only t)
+  (body     (util:required 'body)     :type node-body       :read-only t)
+  (location (util:required 'location) :type source:location :read-only t))
+
+(defun node-catch-branch-list-p (xs)
+  (and (alexandria:proper-list-p xs)
+       (every #'node-catch-branch-p xs)))
+
+(deftype node-catch-branch-list ()
+  '(satisfies node-catch-branch-list-p))
+
+(defstruct (node-catch
+            (:include node)
+            (:copier nil))
+ (expr     (util:required 'expr)     :type node                   :read-only t)
+ (branches (util:required 'branches) :type node-catch-branch-list :read-only t))
+
+(defstruct (node-resumable-branch (:copier nil))
+  (pattern  (util:required 'pattern)  :type pattern         :read-only t)
+  (body     (util:required 'body)     :type node-body       :read-only t)
+  (location (util:required 'location) :type source:location :read-only t))
+
+(defun node-resumable-branch-list-p (xs)
+  (and (alexandria:proper-list-p xs)
+       (every #'node-resumable-branch-p xs)))
+
+(deftype node-resumable-branch-list ()
+  '(satisfies node-resumable-branch-list-p))
+
+(defstruct (node-resumable
+            (:include node)
+            (:copier nil))
+ (expr     (util:required 'expr)     :type node                       :read-only t)
+ (branches (util:required 'branches) :type node-resumable-branch-list :read-only t))
+
+(defstruct (node-resume-with
+            (:include node)
+            (:copier nil))
+  (resumption (util:required 'resumption) :type node :read-only t))
 
 (defun parse-expression (form source)
   (declare (type cst:cst form)
-           (values node &optional))
+    (values node &optional))
 
   (cond
     ;;
@@ -1132,6 +1178,69 @@ Rebound to NIL parsing an anonymous FN.")
           :body (parse-body (cst:nthrest 3 labelled-body) form  source)))))
 
     ;;
+    ;; Exceptions 
+    ;; 
+
+    ((and (cst:atom (cst:first form))
+          (eq 'coalton:throw (cst:raw (cst:first form))))
+
+     ;; (throw)
+     (unless (cst:consp (cst:rest form))
+       (parse-error "Malformed throw"
+                    (note-end source (cst:first form) "expected expression")))
+
+     ;; (throw expr ...more...)
+     (unless (cst:null (cst:rest (cst:rest form)))
+       (parse-error "Malformed throw" (note source form "too many expressions in throw")))
+
+     (make-node-throw
+      :location (form-location source form)
+      :condition (parse-expression (cst:rest form) source)))
+
+
+    ((and (cst:atom (cst:first form))
+          (eq 'coalton:catch (cst:raw (cst:first form))))
+
+     ;; (catch)
+     (unless (cst:consp (cst:rest form))
+       (parse-error "Malformed catch expression"
+                    (note-end source (cst:first form) "expexted expression")))
+
+     (make-node-catch
+      :expr (parse-expression (cst:second form) source)
+      :branches (loop :for branches := (cst:nthrest 2 form) :then (cst:rest branches)
+                      :while (cst:consp branches)
+                      :collect (parse-catch-branch (cst:first branches) source))
+      :location (form-location source form)))
+
+    ((and (cst:atom (cst:first form))
+          (eq 'coalton:resumable (cst:raw (cst:first form))))
+
+     ;; (resumable)
+     (unless (cst:consp (cst:rest form))
+       (parse-error "Malformed resumable expression"
+                    (note-end source (cst:first form) "expected expression")))
+
+     (make-node-resumable
+      :expr (parse-expression (cst:second form) source)
+      :branches (loop :for branches := (cst:nthrest 2 form) :then (cst:rest branches)
+                      :while (cst:consp branches)
+                      :collect (parse-resumable-branch (cst:first branches) source))
+      :location (form-location source form)))
+
+    ((and (cst:atom (cst:first form))
+          (eq 'coalton:resume-with (cst:raw (cst:first form))))
+
+     ;; (resume-with)
+     (unless (cst:consp (cst:rest form))
+       (parse-error "Malformed resume-with expression"
+                    (note-end source (cst:first form) "expected expression")))
+
+     (make-node-resume-with
+      :resumption (parse-expression (cst:second form) source)
+      :location (form-location source form)))
+
+    ;;
     ;; Macros
     ;;
 
@@ -1148,6 +1257,7 @@ Rebound to NIL parsing an anonymous FN.")
        (source:with-context
            (:macro "Error occurs within macro context. Source locations may be imprecise")
          (parse-expression (expand-macro form source) source))))
+
 
     ;;
     ;; Function Application
@@ -1563,3 +1673,48 @@ if (CST:SECOND FORM) is not a keyword."
               (cst:nthrest 2 form)
               (cst:second form))
       (values nil (cst:rest form) nil)))
+
+
+(defun parse-catch-branch (form source)
+  (declare (type cst:cst form)
+           (values node-catch-branch &optional))
+
+  (when (cst:atom form)
+    (parse-error "Malformed catch branch"
+                 (note source form "expected list")))
+
+  (unless (cst:proper-list-p form)
+    (parse-error "Malformed catch branch"
+                 (note source form "unexpected dotted list")))
+
+  ;; (P)
+  (unless (cst:consp (cst:rest form))
+    (parse-error "Malformed catch branch"
+                 (note-end source (cst:first form) "expected body")))
+
+  (make-node-catch-branch
+   :pattern (parse-pattern (cst:first form) source)
+   :body (parse-body (cst:rest form) form source)
+   :location (form-location source form)))
+
+(defun parse-resumable-branch (form source)
+  (declare (type cst:cst form)
+           (values node-resumable-branch &optional))
+
+  (when (cst:atom form)
+    (parse-error "Malformed resumable branch"
+                 (note source form "expected list")))
+
+  (unless (cst:proper-list-p form)
+    (parse-error "Malformed resumable branch"
+                 (note source form "unexpected dotted list")))
+
+  ;; (P)
+  (unless (cst:consp (cst:rest form))
+    (parse-error "Malformed resumable branch"
+                 (note-end source (cst:first form) "expected body")))
+
+  (make-node-resumable-branch
+   :pattern (parse-pattern (cst:first form) source)
+   :body (parse-body (cst:rest form) form source)
+   :location (form-location source form)))

@@ -83,6 +83,10 @@
    #:continue
    #:for
    #:in                                 ; Syntax
+   #:throw
+   #:catch
+   #:resumable
+   #:resume-with
    )
 
   ;; Macros
