@@ -74,6 +74,8 @@
    #:make-node-match                    ; CONSTRUCTOR
    #:node-match-expr                    ; ACCESSOR
    #:node-match-branches                ; ACCESSOR
+   #:node-throw                         ; STRUCT
+   #:make-node-throw                    ; CONSTRUCTOR
    #:node-progn                         ; STRUCT
    #:make-node-progn                    ; CONSTRUCTOR
    #:node-progn-body                    ; ACCESSOR
@@ -286,6 +288,11 @@
             (:copier nil))
   (expr     (util:required 'expr)         :type node                   :read-only t)
   (branches (util:required 'branches)     :type node-match-branch-list :read-only t))
+
+(defstruct (node-throw
+            (:include node)
+            (:copier nil))
+  (condition (util:required 'condition) :type node :read-only t))
 
 (defstruct (node-progn
             (:include node)

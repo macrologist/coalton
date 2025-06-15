@@ -692,6 +692,33 @@ Returns (VALUES INFERRED-TYPE PREDICATES NODE SUBSTITUTIONS)")
           (tc:coalton-internal-type-error ()
             (standard-expression-type-mismatch-error node subs expected-type ret-ty))))))
 
+  (:method ((node parser:node-throw) expected-type subs env)
+    (declare (type tc:ty expected-type)
+             (type tc:substitution-list subs)
+             (type tc-env env)
+             (values tc:ty tc:ty-predicate-list accessor-list node-throw tc:substitution-list))
+    (multiple-value-bind (cond-ty preds accessors cond-node subs)
+        ;; we want to run the type checking on the condition node to
+        ;; ensure its fields are properly typed.
+        (infer-expression-type (parser:node-throw-condition node)
+                               (tc:make-variable)
+                               subs
+                               env)
+      (declare (ignore cond-ty))
+
+      ;; throw's type is the type of its containing expression, it
+      ;; does not return a value and must therefore unify with
+      ;; anything.
+      (values
+       expected-type
+       preds
+       accessors
+       (make-node-throw
+        :type (tc:qualify nil expected-type)
+        :location (source:location node)
+        :condition cond-node)
+       subs)))
+
   (:method ((node parser:node-progn) expected-type subs env)
     (declare (type tc:ty expected-type)
              (type tc:substitution-list subs)

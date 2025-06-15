@@ -80,10 +80,10 @@
 
 (defun toplevel-define-type (types structs type-aliases env)
   (declare (type parser:toplevel-define-type-list types)
-           (type parser:toplevel-define-struct-list structs)
-           (type parser:toplevel-define-type-alias-list type-aliases)
-           (type tc:environment env)
-           (values type-definition-list parser:toplevel-define-instance-list tc:environment))
+    (type parser:toplevel-define-struct-list structs)
+    (type parser:toplevel-define-type-alias-list type-aliases)
+    (type tc:environment env)
+    (values type-definition-list parser:toplevel-define-instance-list tc:environment))
 
   ;; Ensure that all types are defined in the current package
   (check-package (append types structs type-aliases)

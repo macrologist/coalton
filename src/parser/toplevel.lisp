@@ -577,7 +577,7 @@ If MODE is :macro, a package form is forbidden, and an explicit check is made fo
                        (note source (cons (- (file-position stream) 2)
                                           (- (file-position stream) 1))
                              "missing close parenthesis")))
-
+        
         (unless presentp
           (return))
 

@@ -152,6 +152,21 @@
    #:make-node-do                       ; CONSTRUCTOR
    #:node-do-nodes                      ; ACCESSOR
    #:node-do-last-node                  ; ACCESSOR
+   #:node-throw                         ; STRUCT
+   #:make-node-throw                    ; CONSTRUCTOR
+   #:node-throw-condition               ; ACCESSOR
+   #:node-catch                         ; STRUCT
+   #:make-node-catch                    ; CONSTRUCTOR
+   #:node-catch-branches                ; ACCESSOR
+   #:node-catch-expr                    ; ACCESSOR
+   #:node-catch-branch                  ; STRUCT
+   #:make-node-catch-branch             ; CONSTRUCTOR
+   #:node-catch-branch-pattern          ; ACCESSOR
+   #:node-catch-branch-body             ; ACCESSOR
+   #:node-resumable                     ; STRUCT
+   #:make-node-resumable                ; CONSTRUCTOR
+   #:node-resume-with                   ; STRUCT
+   #:make-node-resume-with              ; CONSTRUCTOR
    #:parse-expression                   ; FUNCTION
    #:parse-expressions                  ; FUNCTION
    #:parse-body                         ; FUNCTION
@@ -566,6 +581,9 @@ Rebound to NIL parsing an anonymous FN.")
   (pattern  (util:required 'pattern)  :type pattern         :read-only t)
   (body     (util:required 'body)     :type node-body       :read-only t)
   (location (util:required 'location) :type source:location :read-only t))
+
+(defmethod source:location ((self node-catch-branch))
+  (node-catch-branch-location self))
 
 (defun node-catch-branch-list-p (xs)
   (and (alexandria:proper-list-p xs)

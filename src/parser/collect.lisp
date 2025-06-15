@@ -131,6 +131,7 @@ in expressions. May not include all bound variables."
   (delete-duplicates (collect-variables-generic% node) :test #'eq))
 
 (defgeneric collect-variables-generic% (node)
+  
   (:method ((node node-variable))
     (declare (values node-variable-list))
     (list node))
@@ -268,6 +269,20 @@ in expressions. May not include all bound variables."
   (:method ((node node-continue))
     (declare (values node-variable-list &optional))
     nil)
+
+  (:method ((node node-throw))
+    (declare (values node-variable-list))
+    (collect-variables-generic% (node-throw-condition node)))
+
+  (:method ((node node-catch-branch))
+    (declare (values node-variable-list &optional))
+    (collect-variables-generic% (node-catch-branch-body node)))
+
+  (:method ((node node-catch))
+    (declare (values node-variable-list))
+    (nconc
+     (collect-variables-generic% (node-catch-expr node))
+     (mapcan #'collect-variables-generic% (node-catch-branches node))))
 
   (:method ((node node-do-bind))
     (declare (values node-variable-list &optional))

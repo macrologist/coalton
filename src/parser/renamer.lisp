@@ -34,7 +34,7 @@
 (defgeneric rename-variables-generic% (node ctx)
   (:method ((node node-variable) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (let ((new-name (algo:immutable-map-lookup ctx (node-variable-name node))))
 
@@ -48,7 +48,7 @@
 
   (:method ((node node-accessor) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      node
@@ -56,19 +56,19 @@
 
   (:method ((node node-literal) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values node ctx))
 
   (:method ((node node-integer-literal) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values node ctx))
 
   (:method ((node node-bind) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node-bind algo:immutable-map))
+      (values node-bind algo:immutable-map))
 
     (let* ((new-bindings (make-local-vars (mapcar #'pattern-var-name (pattern-variables (node-bind-pattern node)))))
 
@@ -85,7 +85,7 @@
 
   (:method ((node node-body) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node-body algo:immutable-map))
+      (values node-body algo:immutable-map))
 
     (let ((new-ctx ctx))
       (values
@@ -100,7 +100,7 @@
 
   (:method ((node node-abstraction) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (let* ((new-bindings (make-local-vars (mapcar #'pattern-var-name (pattern-variables (node-abstraction-params node)))))
 
@@ -115,7 +115,7 @@
 
   (:method ((node node-let-binding) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node-let-binding algo:immutable-map))
+      (values node-let-binding algo:immutable-map))
 
     (values
      (make-node-let-binding
@@ -126,7 +126,7 @@
 
   (:method ((node node-let-declare) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node-let-declare algo:immutable-map))
+      (values node-let-declare algo:immutable-map))
 
     (values
      (make-node-let-declare
@@ -137,7 +137,7 @@
 
   (:method ((node node-let) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (let* ((new-bindings (make-local-vars (mapcar (alexandria:compose
                                                    #'node-variable-name
@@ -156,7 +156,7 @@
 
   (:method ((node node-lisp) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-lisp
@@ -170,10 +170,11 @@
   (:method ((node node-match-branch) ctx)
     (declare (type algo:immutable-map ctx))
 
-    (let* ((new-bindings (make-local-vars (mapcar #'pattern-var-name
-                                                  (pattern-variables (node-match-branch-pattern node)))))
-
-           (new-ctx (algo:immutable-map-set-multiple ctx new-bindings)))
+    (let* ((new-bindings
+             (make-local-vars (mapcar #'pattern-var-name
+                                      (pattern-variables (node-match-branch-pattern node)))))
+           (new-ctx
+             (algo:immutable-map-set-multiple ctx new-bindings)))
 
       (values
        (make-node-match-branch
@@ -184,7 +185,7 @@
 
   (:method ((node node-match) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-match
@@ -195,7 +196,7 @@
 
   (:method ((node node-progn) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-progn
@@ -205,7 +206,7 @@
 
   (:method ((node node-the) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-the
@@ -216,7 +217,7 @@
 
   (:method ((node node-return) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-return
@@ -228,7 +229,7 @@
 
   (:method ((node node-application) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-application
@@ -239,7 +240,7 @@
 
   (:method ((node node-or) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-or
@@ -249,7 +250,7 @@
 
   (:method ((node node-and) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-and
@@ -259,7 +260,7 @@
 
   (:method ((node node-if) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-if
@@ -271,7 +272,7 @@
 
   (:method ((node node-when) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-when
@@ -282,7 +283,7 @@
 
   (:method ((node node-while) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
     (values
      (make-node-while
       :expr (rename-variables-generic% (node-while-expr node) ctx)
@@ -293,15 +294,15 @@
 
   (:method ((node node-while-let) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
     (let*
         ((new-bindings
            (make-local-vars
             (mapcar #'pattern-var-name
                     (pattern-variables (node-while-let-pattern node)))))
 
-           (new-ctx
-             (algo:immutable-map-set-multiple ctx new-bindings)))
+         (new-ctx
+           (algo:immutable-map-set-multiple ctx new-bindings)))
 
 
       (values
@@ -315,15 +316,15 @@
 
   (:method ((node node-for) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
     (let*
         ((new-bindings
            (make-local-vars
             (mapcar #'pattern-var-name
                     (pattern-variables (node-for-pattern node)))))
 
-           (new-ctx
-             (algo:immutable-map-set-multiple ctx new-bindings)))
+         (new-ctx
+           (algo:immutable-map-set-multiple ctx new-bindings)))
 
       (values
        (make-node-for
@@ -336,7 +337,7 @@
 
   (:method ((node node-loop) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
     (values
      (make-node-loop
       :location (source:location node)
@@ -346,21 +347,21 @@
 
   (:method ((node node-break) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
     (values
      node
      ctx))
 
   (:method ((node node-continue) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
     (values
      node
      ctx))
   
   (:method ((node node-unless) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-unless
@@ -369,10 +370,44 @@
       :location (source:location node))
      ctx))
 
+  (:method ((node node-throw) ctx)
+    (declare (type algo:immutable-map ctx)
+      (values node algo:immutable-map))
+    (values
+     (make-node-throw
+      :condition (rename-variables-generic% (node-throw-condition node) ctx)
+      :location (source:location node))
+     ctx))
+
+  (:method ((node node-catch) ctx)
+    (declare (type algo:immutable-map ctx)
+      (values node algo:immutable-map))
+    (values
+     (make-node-catch
+      :location (source:location node)
+      :branches (rename-variables-generic% (node-catch-branches node) ctx)
+      :expr (rename-variables-generic% (node-catch-expr node) ctx))
+     ctx))
+
+  (:method ((node node-catch-branch) ctx)
+    (declare (type algo:immutable-map ctx))
+
+    (let* ((new-bindings
+             (make-local-vars (mapcar #'pattern-var-name
+                                      (pattern-variables (node-catch-branch-pattern node)))))
+           (new-ctx
+             (algo:immutable-map-set-multiple ctx new-bindings)))
+
+      (values
+       (make-node-catch-branch
+        :pattern (rename-variables-generic% (node-catch-branch-pattern node) new-ctx)
+        :body (rename-variables-generic% (node-catch-branch-body node) new-ctx)
+        :location (source:location node))
+       ctx)))
+
   (:method ((node node-cond-clause) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node-cond-clause algo:immutable-map))
-
+      (values node-cond-clause algo:immutable-map))
     (values
      (make-node-cond-clause
       :expr (rename-variables-generic% (node-cond-clause-expr node) ctx)
@@ -382,7 +417,7 @@
 
   (:method ((node node-cond) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (values
      (make-node-cond
@@ -392,7 +427,7 @@
 
   (:method ((node node-do-bind) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node-do-bind algo:immutable-map))
+      (values node-do-bind algo:immutable-map))
 
     (let* ((new-bindings (make-local-vars (mapcar #'pattern-var-name (pattern-variables (node-do-bind-pattern node)))))
 
@@ -407,7 +442,7 @@
 
   (:method ((node node-do) ctx)
     (declare (type algo:immutable-map ctx)
-             (values node algo:immutable-map))
+      (values node algo:immutable-map))
 
     (let ((new-ctx ctx))
       (values
@@ -423,7 +458,7 @@
 
   (:method ((pattern pattern-var) ctx)
     (declare (type algo:immutable-map ctx)
-             (values pattern algo:immutable-map))
+      (values pattern algo:immutable-map))
 
     (let ((new-name (algo:immutable-map-lookup ctx (pattern-var-name pattern))))
       (values
@@ -437,19 +472,19 @@
 
   (:method ((pattern pattern-literal) ctx)
     (declare (type algo:immutable-map ctx)
-             (values pattern algo:immutable-map))
+      (values pattern algo:immutable-map))
 
     (values pattern ctx))
 
   (:method ((pattern pattern-wildcard) ctx)
     (declare (type algo:immutable-map ctx)
-             (values pattern algo:immutable-map))
+      (values pattern algo:immutable-map))
 
     (values pattern ctx))
 
   (:method ((pattern pattern-constructor) ctx)
     (declare (type algo:immutable-map ctx)
-             (values pattern algo:immutable-map))
+      (values pattern algo:immutable-map))
 
     (values
      (make-pattern-constructor
@@ -460,7 +495,7 @@
 
   (:method ((toplevel toplevel-define) ctx)
     (declare (type algo:immutable-map ctx)
-             (values toplevel-define algo:immutable-map))
+      (values toplevel-define algo:immutable-map))
 
     (let* ((new-bindings (make-local-vars (mapcar #'pattern-var-name (pattern-variables (toplevel-define-params toplevel)))))
 
@@ -480,7 +515,7 @@
 
   (:method ((method instance-method-definition) ctx)
     (declare (type algo:immutable-map ctx)
-             (values instance-method-definition algo:immutable-map))
+      (values instance-method-definition algo:immutable-map))
 
     (let* ((new-bindings (make-local-vars (mapcar #'pattern-var-name (pattern-variables (instance-method-definition-params method)))))
 
@@ -497,7 +532,7 @@
 
   (:method ((toplevel toplevel-define-instance) ctx)
     (declare (type algo:immutable-map ctx)
-             (values toplevel-define-instance algo:immutable-map))
+      (values toplevel-define-instance algo:immutable-map))
 
     (values
      (make-toplevel-define-instance
@@ -512,7 +547,7 @@
 
   (:method ((program program) ctx)
     (declare (type algo:immutable-map ctx)
-             (values program algo:immutable-map))
+      (values program algo:immutable-map))
 
     (values
      (make-program
@@ -531,7 +566,7 @@
 
   (:method ((list list) ctx)
     (declare (type algo:immutable-map ctx)
-             (values t algo:immutable-map))
+      (values t algo:immutable-map))
 
     (values
      (mapcar
